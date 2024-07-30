@@ -17,7 +17,7 @@ namespace Oxide.Plugins
         {
             permission.RegisterPermission("steamcheck.admin", this);
             AddCovalenceCommand("checkplayers", "CheckPlayersCommand", "steamcheck.admin");
-            AddConsoleCommand("steamcheck.checkplayers", this, "CheckPlayersConsoleCommand");
+            AddCovalenceCommand("steamcheck.checkplayers", "CheckPlayersConsoleCommand", "steamcheck.admin");
         }
 
         private void CheckPlayersCommand(IPlayer player, string command, string[] args)
@@ -31,20 +31,21 @@ namespace Oxide.Plugins
             }
         }
 
-        private void CheckPlayersConsoleCommand(ConsoleSystem.Arg arg)
+        private void CheckPlayersConsoleCommand(IPlayer player, string command, string[] args)
         {
-            if (arg.Connection != null)
+            if (player.IsServer)
             {
-                arg.ReplyWith("This command can only be used from the server console.");
-                return;
+                foreach (BasePlayer onlinePlayer in BasePlayer.activePlayerList)
+                {
+                    ulong steamId = onlinePlayer.userID;
+                    string playerName = onlinePlayer.displayName;
+                    string ip = onlinePlayer.net.connection.ipaddress;
+                    CheckSteamAccount(steamId, playerName, ip);
+                }
             }
-
-            foreach (BasePlayer onlinePlayer in BasePlayer.activePlayerList)
+            else
             {
-                ulong steamId = onlinePlayer.userID;
-                string playerName = onlinePlayer.displayName;
-                string ip = onlinePlayer.net.connection.ipaddress;
-                CheckSteamAccount(steamId, playerName, ip);
+                player.Reply("This command can only be used from the server console.");
             }
         }
 
